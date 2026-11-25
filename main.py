@@ -27,9 +27,19 @@ def main() -> int:
     if not valid(line):
         print("invalid entry line", file=sys.stderr)
         return 1
-    os.makedirs("/output", exist_ok=True)
-    with open("/output/entry.txt", "w", encoding="utf-8") as f:
-        f.write(line)
+    try:
+        os.makedirs("/output", exist_ok=True)
+        with open("/output/entry.txt", "w", encoding="utf-8") as f:
+            f.write(line)
+        # Read back and verify: the file must contain exactly the entry line,
+        # so a partial or failed write is caught instead of passing silently.
+        with open("/output/entry.txt", encoding="utf-8") as f:
+            if f.read() != line:
+                print("entry.txt does not match the entry line", file=sys.stderr)
+                return 1
+    except OSError as exc:
+        print(f"cannot write entry: {exc}", file=sys.stderr)
+        return 1
     return 0
 
 
